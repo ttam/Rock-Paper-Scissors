@@ -28,10 +28,7 @@ var player_one_throw = null;
 var player_two_throw = null;
 var game_active = false;
 
-var error_queue=[];
-
-//player_list[100]=['foo',new Date().getTime()];
-//player_list[101]=['bar',new Date().getTime()];
+var error_queue={};
 
 setInterval(function () {
 	var mark=(new Date().getTime()-3000);
@@ -47,6 +44,14 @@ fu.listen(Number(process.env.PORT || PORT), HOST);
 fu.get("/", fu.staticHandler("index.html"));
 fu.get("/styles.css", fu.staticHandler("styles.css"));
 fu.get("/jquery-1.8.1.min.js", fu.staticHandler("jquery-1.8.1.min.js"));
+fu.get("/img/p1-waiting.gif", fu.staticHandler("img/p1-waiting.gif"));
+fu.get("/img/p1-rock.gif", fu.staticHandler("img/p1-rock.gif"));
+fu.get("/img/p1-paper.gif", fu.staticHandler("img/p1-paper.gif"));
+fu.get("/img/p1-scissors.gif", fu.staticHandler("img/p1-scissors.gif"));
+fu.get("/img/p2-waiting.gif", fu.staticHandler("img/p2-waiting.gif"));
+fu.get("/img/p2-rock.gif", fu.staticHandler("img/p2-rock.gif"));
+fu.get("/img/p2-paper.gif", fu.staticHandler("img/p2-paper.gif"));
+fu.get("/img/p2-scissors.gif", fu.staticHandler("img/p2-scissors.gif"));
 
 fu.get("/api", function (req, res) {
 	var action = getAjaxData(req,'action');
@@ -60,6 +65,7 @@ fu.get("/api", function (req, res) {
 			var player_list = [];
 			var new_chat=[];
 			var since=getAjaxData(req,'since');
+			var eq_delete=null;
 			for(key in players) {
 				if (key==id) {
 					players[key].ping=new Date().getTime()
@@ -68,6 +74,14 @@ fu.get("/api", function (req, res) {
 					player_list.push(players[key].nick);
 				}
 			}
+			data.errortext='';
+			for (key in error_queue) {
+				if (id==key) {
+					data.errortext=error_queue[key];
+					eq_delete=id;
+				}
+			}
+			if (eq_delete) { delete error_queue[eq_delete]; }
 
 			var p1=p2 = 'Empty Spot';
 			if(game_active) {
@@ -94,7 +108,6 @@ fu.get("/api", function (req, res) {
 			data.player_one = p1;
 			data.player_two = p2;
 			data.player_list = player_list;
-			data.errortext='';
 			//data.state = waiting_both | waiting_one | waiting_two
 			data.chat=new_chat;
 			
@@ -153,22 +166,67 @@ fu.get("/api", function (req, res) {
 			var text=getAjaxData(req,'text');
 			
 			if (text.substring(0,1)=='/') {
-				error_queue.push({id:id,text:'foo'});
-			}
-			
-			var message= {
-				nick: players[id].nick,
-				text: text,
-				timestamp: (new Date()).getTime()
-			};
-
-			chat_box.push(message);
+				var parse_array=text.split(/\/(.+?)\b/);
+				var op=parse_array[1];
+				var param_str=parse_array[2].trim();
+				var params=param_str.split(' ');
+				
+				console.log(op);
+				console.log(params);
+				switch (op) {
+					case 'me':
+						var message= {
+							nick: '',
+							text: players[id].nick+' '+param_str,
+							timestamp: (new Date()).getTime()
+						};
+					break;
+					case 'fudge':
+						var message= {
+							nick: params[0],
+							text: params.slice(1,params.length).join(' '),
+							timestamp: (new Date()).getTime()
+						};
+					break;
+					case 'rq':
+						addMessage({
+							nick: '',
+							text: players[id].nick+' is so over this stupid game.',
+						});
+					break;
+				}
+				//chat_box.push(message);
+				
+			} else {			
+				addMessage({
+					nick: players[id].nick,
+					text: text,
+				});
+			}			
 			
 		break;
 	}
 	res.simpleJSON(200, data);
 });
 
+function addMessage(opts) {
+	var defaults={
+		type:1,
+		timestamp: (new Date()).getTime(),
+		nick: '',
+		text: ''
+	};
+	var message = $.extend({}, defaults, opts);
+	chat_box.push(message);
+}
+
+function apiError(id,text) {
+	if (id in error_queue) {
+		error_queue[id]+='\n'+text;
+	} else {
+		error_queue[id]=text;
+	}
+}
 
 function compareGestures(g1,g2){
 	if (g1==g2) { return 0; }
