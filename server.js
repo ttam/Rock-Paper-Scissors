@@ -271,19 +271,19 @@ function apiError(id,text) {
 function compareGestures(g1,g2){
 	if (g1==g2) { return 0; }
 	if (g1==1) {
-		return (g2==2) ? player_one : player_two;
+		return (g2==2) ? player_two : player_one;
 	} else if (g1==2) {
-		return (g2==3) ? player_one : player_two;
+		return (g2==3) ? player_two : player_one;
 	} else if (g1==3) {
-		return (g2==1) ? player_one : player_two;
+		return (g2==1) ? player_two : player_one;
 	}
 }
 
 function gestureIndex(gesture) {
 	switch(gesture) {
 		case 'rock': return 1;
-		case 'scissors': return 2;
-		case 'paper': return 3;
+		case 'paper': return 2;
+		case 'scissors': return 3;
 	}
 	return false;
 }
