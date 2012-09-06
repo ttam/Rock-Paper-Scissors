@@ -70,10 +70,10 @@ function init() {
 	$handTwo.removeClass('hand-chosen hand-rock hand-paper hand-scissors');
 }
 
-function playerChoice(player, choice) {
+function playerThrow(player, item) {
 	$div = (player==1) ? $handOne : $handTwo;
 	$div.removeClass();
-	switch(choice) {
+	switch(item) {
 		case 1:
 			$div.addClass('hand-chosen');
 		break;
@@ -103,19 +103,18 @@ function getGameState() {
 		$chatBox.animate({ scrollTop: $chatBox.prop('scrollHeight') - $chatBox.height() }, 300);
 		last_update=(new Date()).getTime();
 		
-		if(player_one_status != data.player_one_status) {
-			player_one_status = data.player_one_status;
-			playerChoice(1, player_one_status);
+		if("errortext" in data) {
+			alert(data.errortext);
 		}
 
-		if(player_two_status != data.player_two_status) {
-			player_two_status = data.player_two_status;
-			playerChoice(2, player_two_status);
+		if("events" in data) {
+			var e = data.events;
+			switch(e[0]) {
+				case 'player_throw':
+					playerThrow(e[1], e[2]);
+				break;
+			}
 		}
-
-
-		if (data.errortext) { alert(data.errortext); }
-		
 	});
 
 	if(MY_ID==0) {
