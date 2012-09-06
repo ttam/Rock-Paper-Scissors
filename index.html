@@ -101,6 +101,10 @@ function getGameState() {
 	makeRequest('getstate',{since:last_update},function(data) {
 		var list_output = data.player_list.join('</li><li>');
 
+
+$playerOne.html(data.player_one);
+$playerTwo.html(data.player_two);
+
 		$players.html('<ul><li>'+list_output+'</li></ul>');
 		$chatBoxUl.append(data.chat.join("\n"))
 		$chatBox.animate({ scrollTop: $chatBox.prop('scrollHeight') - $chatBox.height() }, 300);
@@ -110,28 +114,33 @@ function getGameState() {
 			alert(data.errortext);
 		}
 
-		if("events" in data) {
-			var e = data.events;
-			switch(e[0]) {
-				case 'playing':
-					$buttons.removeClass('side1 side2').addClass('side'+e[1]);
-				break;
+		if("events" in data && (data.events!='')) {
+			for(i in data.events) {
+				var e = data.events[i];
+				console.log('EVENT: '+e[0]+' YAYAH');
+				switch(e[0]) {
+					case 'playing':
+						$buttons.removeClass('side1 side2').addClass('side'+e[1]);
+					break;
 
-				case 'throw':
-					playerThrow(e[0], 1);
-				break;
+					case 'throw':
+						playerThrow(e[1], 1);
+					break;
 
-				case 'finish':
-					playerThrow(1, e[1]+1);
-					playerThrow(2, e[2]+1);
-					endGame(e[0]);
-				break;
+					case 'finish':
+						playerThrow(1, e[2]+1);
+						playerThrow(2, e[3]+1);
+						endGame(e[1]);
+					break;
 
-				case 'newgame':
-					$playerOne.html(e[0]);
-					$playerTwo.html(e[1]);
-					startGame();
-				break;
+					case 'newgame':
+						setTimeout(function(){
+							$playerOne.html(e[1]);
+							$playerTwo.html(e[2]);
+							startGame();
+						}, 5000);
+					break;
+				}
 			}
 		}
 	});
@@ -152,7 +161,8 @@ function startGame() {
 }
 
 function endGame(winner) {
-	alert('Player '+ winner +' won!');
+//	playerThrow(1, e[2]+1);
+//	playerThrow(2, e[3]+1);
 }
 
 function makeRequest(action,data,callback) {
