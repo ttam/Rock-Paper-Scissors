@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="not-joined">
+<body class="ot-joined">
 	<div id="everything"> 
 		<div id="contentwrap"><div id="content"> 
 			<div id="game">
@@ -50,18 +50,48 @@ var API_URL = 'http://127.0.0.1:645/api';
 var MY_ID = 0;
 var MY_NAME = '';
 var player_status = 0;
+var player_one_status = 0;
+var player_two_status = 0;
 
 var last_update=0;
 
-var $chatBox, $chatBoxUl, $playerOne, $playerTwo, $players;
+var $chatBox, $chatBoxUl, $playerOne, $playerTwo, $handOne, $handTwo, $players;
 
 function init() {
 	$chatBox = $('#chat-box');
 	$chatBoxUl = $chatBox.find('ul');
 	$playerOne = $('#playerone');
 	$playerTwo = $('#playertwo');
+	$handOne = $('#hand-one');
+	$handTwo = $('#hand-two');
 	$players = $('#players');
+
+	$handOne.removeClass('hand-chosen hand-rock hand-paper hand-scissors');
+	$handTwo.removeClass('hand-chosen hand-rock hand-paper hand-scissors');
 }
+
+function playerChoice(player, choice) {
+	$div = (player==1) ? $handOne : $handTwo;
+	$div.removeClass();
+	switch(choice) {
+		case 1:
+			$div.addClass('hand-chosen');
+		break;
+
+		case 2:
+			$div.addClass('hand-chosen hand-rock');
+		break;
+
+		case 3:
+			$div.addClass('hand-chosen hand-paper');
+		break;
+
+		case 4:
+			$div.addClass('hand-chosen hand-scissors');
+		break;
+	}
+}
+
 function getGameState() {
 	makeRequest('getstate',{since:last_update},function(data) {
 		var list_output = data.player_list.join('</li><li>');
@@ -73,6 +103,17 @@ function getGameState() {
 		$chatBox.animate({ scrollTop: $chatBox.prop('scrollHeight') - $chatBox.height() }, 300);
 		last_update=(new Date()).getTime();
 		
+		if(player_one_status != data.player_one_status) {
+			player_one_status = data.player_one_status;
+			playerChoice(1, player_one_status);
+		}
+
+		if(player_two_status != data.player_two_status) {
+			player_two_status = data.player_two_status;
+			playerChoice(2, player_two_status);
+		}
+
+
 		if (data.errortext) { alert(data.errortext); }
 		
 	});
@@ -91,6 +132,7 @@ function startGame() {
 	$('body').removeClass('player-one player-two');
 	$('#hand-one, #hand-two').removeClass('hand-chosen hand-rock hand-scissors hand-paper');
 }
+
 function makeRequest(action,data,callback) {
 	var ajax_data = {};
 	ajax_data = $.extend({action:action, id: MY_ID},data);

@@ -47,10 +47,15 @@ fu.listen(Number(process.env.PORT || PORT), HOST);
 fu.get("/", fu.staticHandler("index.html"));
 fu.get("/styles.css", fu.staticHandler("styles.css"));
 fu.get("/jquery-1.8.1.min.js", fu.staticHandler("jquery-1.8.1.min.js"));
-fu.get("/img/waiting.png", fu.staticHandler("img/waiting.png"));
-fu.get("/img/rock.png", fu.staticHandler("img/rock.png"));
-fu.get("/img/paper.png", fu.staticHandler("img/paper.png"));
-fu.get("/img/scissors.png", fu.staticHandler("img/scissors.png"));
+fu.get("/img/p1-waiting.gif", fu.staticHandler("img/p1-waiting.gif"));
+fu.get("/img/p1-rock.gif", fu.staticHandler("img/p1-rock.gif"));
+fu.get("/img/p1-paper.gif", fu.staticHandler("img/p1-paper.gif"));
+fu.get("/img/p1-scissors.gif", fu.staticHandler("img/p1-scissors.gif"));
+fu.get("/img/p2-waiting.gif", fu.staticHandler("img/p2-waiting.gif"));
+fu.get("/img/p2-rock.gif", fu.staticHandler("img/p2-rock.gif"));
+fu.get("/img/p2-paper.gif", fu.staticHandler("img/p2-paper.gif"));
+fu.get("/img/p2-scissors.gif", fu.staticHandler("img/p2-scissors.gif"));
+
 fu.get("/api", function (req, res) {
 	var action = getAjaxData(req,'action');
 	var data = {};
