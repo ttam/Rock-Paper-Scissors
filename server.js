@@ -85,9 +85,8 @@ fu.get("/api", function (req, res) {
 				if (key==id) {
 					players[key].ping=now;
 				}
-				if(key in players) {
-					player_list.push(players[key].nick);
-				}
+
+				if(key in players) player_list.push(players[key].nick);
 			}
 			data.errortext='';
 			for (key in error_queue) {

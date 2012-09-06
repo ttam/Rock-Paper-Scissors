@@ -7,17 +7,22 @@
   <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="ot-joined">
 	<div id="everything"> 
 		<div id="contentwrap"><div id="content"> 
 			<div id="game">
-				<input type="text" id="my_name" />
+				<input type="text" placeholder="Choose a name" id="my_name">
 				<button id="joinbutton" data-action="join">JOIN</button>
-				<button id="leavebutton" data-action="leave">LEAVE</button>
+				<button id="leavebutton" data-action="leave">LEAVE GAME</button>
 
-				<button id="rock">Rock</button>
-				<button id="paper">Paper</button>
-				<button id="scissors">Scissors</button>
+				<div class="hand" id="hand-one"></div>
+				<div class="hand" id="hand-two"></div>
+				<div id="buttons">
+					<button id="rock">Rock</button>
+					<button id="paper">Paper</button>
+					<button id="scissors">Scissors</button>
+				</div>
+				<div id="message"></div>
 			</div>
 			<div id="chat">
 				<div id="chat-box"><ul></ul></div>
@@ -31,9 +36,9 @@
 
 		<div id="sidebar">
 			<div id="vs">
-				<p id="playerone">Player 1</p>
+				<p id="playerone"></p>
 				<span>vs</span>
-				<p id="playertwo">Player 2</p>
+				<p id="playertwo"></p>
 			</div>
 			<div id="players"></div>
 		</div> 
@@ -44,19 +49,71 @@
 var API_URL = 'http://127.0.0.1:645/api';
 var MY_ID = 0;
 var MY_NAME = '';
+var player_status = 0;
+var player_one_status = 0;
+var player_two_status = 0;
 
 var last_update=0;
 
+var $chatBox, $chatBoxUl, $playerOne, $playerTwo, $handOne, $handTwo, $players;
+
+function init() {
+	$chatBox = $('#chat-box');
+	$chatBoxUl = $chatBox.find('ul');
+	$playerOne = $('#playerone');
+	$playerTwo = $('#playertwo');
+	$handOne = $('#hand-one');
+	$handTwo = $('#hand-two');
+	$players = $('#players');
+
+	$handOne.removeClass('hand-chosen hand-rock hand-paper hand-scissors');
+	$handTwo.removeClass('hand-chosen hand-rock hand-paper hand-scissors');
+}
+
+function playerChoice(player, choice) {
+	$div = (player==1) ? $handOne : $handTwo;
+	$div.removeClass();
+	switch(choice) {
+		case 1:
+			$div.addClass('hand-chosen');
+		break;
+
+		case 2:
+			$div.addClass('hand-chosen hand-rock');
+		break;
+
+		case 3:
+			$div.addClass('hand-chosen hand-paper');
+		break;
+
+		case 4:
+			$div.addClass('hand-chosen hand-scissors');
+		break;
+	}
+}
+
 function getGameState() {
 	makeRequest('getstate',{since:last_update},function(data) {
-		var list_output = data.player_list.join(', ');
+		var list_output = data.player_list.join('</li><li>');
 
-		$('#playerone').html(data.player_one);
-		$('#playertwo').html(data.player_two);
-		$('#players').html('<ul>'+list_output+'</ul>');
-		$('#chat-box ul').append(data.chat.join("\n"));
+		$playerOne.html(data.player_one);
+		$playerTwo.html(data.player_two);
+		$players.html('<ul><li>'+list_output+'</li></ul>');
+		$chatBoxUl.append(data.chat.join("\n"))
+		$chatBox.animate({ scrollTop: $chatBox.prop('scrollHeight') - $chatBox.height() }, 300);
 		last_update=(new Date()).getTime();
 		
+		if(player_one_status != data.player_one_status) {
+			player_one_status = data.player_one_status;
+			playerChoice(1, player_one_status);
+		}
+
+		if(player_two_status != data.player_two_status) {
+			player_two_status = data.player_two_status;
+			playerChoice(2, player_two_status);
+		}
+
+
 		if (data.errortext) { alert(data.errortext); }
 		
 	});
@@ -67,19 +124,31 @@ function getGameState() {
 		$('#chat-message, #chat-send').prop('disabled', '');
 	}
 }
+
+getGameState();
 getGameStateInterval = window.setInterval(getGameState, 800);
+
+function startGame() {
+	$('body').removeClass('player-one player-two');
+	$('#hand-one, #hand-two').removeClass('hand-chosen hand-rock hand-scissors hand-paper');
+}
 
 function makeRequest(action,data,callback) {
 	var ajax_data = {};
 	ajax_data = $.extend({action:action, id: MY_ID},data);
-	console.log(ajax_data);
 	$.get(API_URL, ajax_data, callback);
 }
+
 $(function(){
+	init();
 	$('#joinbutton').click(function() {
 		MY_NAME=$('#my_name').val();
 		makeRequest('join',{name:MY_NAME}, function(data) {
-			MY_ID=data.id;
+			if(1) {
+				MY_ID = data.id;	
+				$('body').removeClass('not-joined');
+			}
+			
 		});
 	});
 

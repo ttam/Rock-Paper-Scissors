@@ -29,14 +29,143 @@ html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
 #content {
 	height: 100%;
 	margin-right: 235px;
+	position: relative;
 }
 
 #game {
-	background: grey;
 	float: left;
 	height: 65%;
+	position: relative;
 	width: 100%;
 }
+
+/** Buttons **/
+.not-joined #leavebutton, .not-joined #rock, .not-joined #paper, .not-joined #scissors { display: none; }
+.not-joined #game { background: #ffffff; }
+.not-joined .hand, .not-joined #chat-control { opacity: 0.1; }
+.not-joined #my_name, .not-joined #joinbutton {
+	display: block;
+  left: 40px;
+  padding: 6px;
+	position:absolute;
+  text-align: center;
+  margin-left: 25%;
+  top: 50%;
+  width: 50%;
+  z-index: 50;
+}
+
+.not-joined #my_name {
+	height: 100px;
+	font-size: 100px;
+	margin-top: -200px;
+}
+
+.not-joined #joinbutton {
+	cursor: pointer;
+	height: 100px;
+	font-size: 100px;
+	line-height: 100px;
+}
+
+#my_name, #joinbutton { display: none; }
+#leavebutton {
+	background: #bc0000;
+	border: 0;
+	color: #ffffff;
+	cursor: hand;
+	font-size: 20px;
+	height: 35px;
+	padding: 4px;
+	width: 100%;
+}
+
+#leavebutton:hover {
+	background: #f00;
+}
+
+.hand, #buttons {
+	height: calc(100% - 35px);
+	height: -webkit-calc(100% - 35px);
+	width: 50%;
+}
+
+.hand {
+	background-image: url(img/waiting.png);
+	background-repeat: no-repeat;
+	float: right;
+	opacity: 0.5;
+	transition: all 300ms linear;
+	-o-transition: all 300ms linear;
+	-ms-transition: all 300ms linear;
+	-moz-transition: all 300ms linear;
+	-webkit-transition: all 300ms linear;
+}
+
+#hand-one { background-image: url(img/p1-waiting.gif); 	background-position: left center;}
+#hand-two { background-image: url(img/p2-waiting.gif); 	background-position: right center;}
+
+.hand-chosen { opacity: 1; }
+
+#hand-one.hand-rock { background-image: url(img/p1-rock.gif); }
+#hand-one.hand-paper { background-image: url(img/p1-paper.gif); }
+#hand-one.hand-scissors { background-image: url(img/p1-scissors.gif); }
+
+
+#hand-two.hand-rock { background-image: url(img/p2-rock.gif); }
+#hand-two.hand-paper { background-image: url(img/p2-paper.gif); }
+#hand-two.hand-scissors { background-image: url(img/p2-scissors.gif); }
+
+#message {
+	background: rgba(255, 255, 255, 0.7);
+	display: none;
+	font-size: 80px;
+	height: 100px;
+	left: 25%;
+	line-height: 100px;
+	position: absolute;
+	text-align: center;
+	top: 50%;
+	width: 50%;
+}
+
+#message.visible {
+	display: block;
+}
+
+#buttons {
+	bottom: 0;
+	left: -50%;
+	position: absolute;
+}
+
+.player-one #buttons {
+	left: 0;
+}
+
+#buttons button {
+	cursor: pointer;
+	height: 70px;
+	left: 25%;
+	opacity: 0.8;
+	position: absolute;
+	top: 50%;
+	width: 50%;
+
+	transition: all 100ms linear;
+	-o-transition: all 100ms linear;
+	-ms-transition: all 100ms linear;
+	-moz-transition: all 100ms linear;
+	-webkit-transition: all 100ms linear;
+}
+
+#buttons button:hover {
+	opacity: 1;
+}
+
+#rock { margin-top: -135px; }
+#paper { 	margin-top: -35px; }
+#scissors { margin-top: 65px; }
 
 #chat {
 	float: left;
@@ -46,17 +175,15 @@ html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
 }
 
 #chat-box {
-	background: #00ff00;
-	float: left;
-	height: auto;
-	margin-bottom: -30px;
-	min-width: 500px;
-	overflow: scroll;
-	width: 100%;
+	height: -moz-calc(100% - 50px);
+	height: -webkit-calc(100% - 50px);
+	height: calc(100% - 50px);
+	padding: 10px;
+	overflow-x: hidden;
+	overflow-y: scroll;
 }
 
 #chat-control {
-	background: #ff00ff;
 	float: left;
 	height: 30px;
 	width: 100%;
@@ -65,10 +192,18 @@ html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
 li span:first-child {
 	color: blue;
 	font-weight: bold;
+	padding-right: 0.3em;
 }
 
 li.msg {
+	background: #000000;
+	color: #ffffff;
 	font-weight: bold;
+	text-align: center;
+}
+
+li.msg span:first-child {
+	display: none;
 }
 
 li.mine span:first-child {
