@@ -120,7 +120,7 @@ $playerTwo.html(data.player_two);
 				console.log('EVENT: '+e[0]+' YAYAH');
 				switch(e[0]) {
 					case 'playing':
-						$buttons.removeClass('side1 side2').addClass('side'+e[1]);
+						$buttons.fadeIn().removeClass('side1 side2').addClass('side'+e[1]);
 					break;
 
 					case 'throw':
@@ -193,18 +193,21 @@ $(function(){
 	});
 
 	$('#rock').click(function() {
+		$buttons.fadeOut();
 		makeRequest('throw', {gesture:'rock'}, function(data) {
 			
 		});
 	});
 
 	$('#paper').click(function() {
+		$buttons.fadeOut();
 		makeRequest('throw', {gesture:'paper'}, function(data) {
 			
 		});
 	});
 
 	$('#scissors').click(function() {
+		$buttons.fadeOut();
 		makeRequest('throw', {gesture:'scissors'}, function(data) {
 			
 		});
