@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="not-joined">
 	<div id="everything"> 
 		<div id="contentwrap"><div id="content"> 
 			<div id="game">
@@ -22,13 +22,10 @@
 					<button id="paper">Paper</button>
 					<button id="scissors">Scissors</button>
 				</div>
+				<div id="message"></div>
 			</div>
 			<div id="chat">
-				<div id="chat-box"><ul>
-					<li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li>
-					<li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li>
-					<li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li>
-				</ul></div>
+				<div id="chat-box"><ul></ul></div>
 				<div id="chat-control">
 					<button id="chat-send">Send</button>
 					<input type="text" id="chat-message" />
@@ -39,9 +36,9 @@
 
 		<div id="sidebar">
 			<div id="vs">
-				<p id="playerone">Player 1</p>
+				<p id="playerone"></p>
 				<span>vs</span>
-				<p id="playertwo">Player 2</p>
+				<p id="playertwo"></p>
 			</div>
 			<div id="players"></div>
 		</div> 
@@ -56,14 +53,24 @@ var player_status = 0;
 
 var last_update=0;
 
+var $chatBox, $chatBoxUl, $playerOne, $playerTwo, $players;
+
+function init() {
+	$chatBox = $('#chat-box');
+	$chatBoxUl = $chatBox.find('ul');
+	$playerOne = $('#playerone');
+	$playerTwo = $('#playertwo');
+	$players = $('#players');
+}
 function getGameState() {
 	makeRequest('getstate',{since:last_update},function(data) {
-		var list_output = data.player_list.join(', ');
+		var list_output = data.player_list.join('</li><li>');
 
-		$('#playerone').html(data.player_one);
-		$('#playertwo').html(data.player_two);
-		$('#players').html('<ul>'+list_output+'</ul>');
-		$('#chat-box ul').append(data.chat.join("\n"));
+		$playerOne.html(data.player_one);
+		$playerTwo.html(data.player_two);
+		$players.html('<ul><li>'+list_output+'</li></ul>');
+		$chatBoxUl.append(data.chat.join("\n"))
+		$chatBox.animate({ scrollTop: $chatBox.prop('scrollHeight') - $chatBox.height() }, 300);
 		last_update=(new Date()).getTime();
 		
 		if (data.errortext) { alert(data.errortext); }
@@ -71,7 +78,6 @@ function getGameState() {
 	});
 
 	if(MY_ID==0) {
-		$('body').removeClass().addClass('joined');
 		$('#chat-message, #chat-send').prop('disabled', 'disabled');
 	} else {
 		$('#chat-message, #chat-send').prop('disabled', '');
@@ -81,6 +87,10 @@ function getGameState() {
 getGameState();
 getGameStateInterval = window.setInterval(getGameState, 800);
 
+function startGame() {
+	$('body').removeClass('player-one player-two');
+	$('#hand-one, #hand-two').removeClass('hand-chosen hand-rock hand-scissors hand-paper');
+}
 function makeRequest(action,data,callback) {
 	var ajax_data = {};
 	ajax_data = $.extend({action:action, id: MY_ID},data);
@@ -88,10 +98,15 @@ function makeRequest(action,data,callback) {
 }
 
 $(function(){
+	init();
 	$('#joinbutton').click(function() {
 		MY_NAME=$('#my_name').val();
 		makeRequest('join',{name:MY_NAME}, function(data) {
-			MY_ID=data.id;
+			if(1) {
+				MY_ID = data.id;	
+				$('body').removeClass('not-joined');
+			}
+			
 		});
 	});
 
