@@ -20,21 +20,32 @@ var fu = require("./fu"),
 
 var sessions = {};
 var players = {};		// Public player list
-var player_queue = [];			// Internally used.
-var chat_box = [];
+var player_queue = [];			// Internally used
 var player_one = null;
 var player_two = null;
 var player_one_throw = null;
 var player_two_throw = null;
 var game_active = false;
 
+// Timestamp queues
+var chat_box = [];
+var event_list = [];
+
 var error_queue={};
 
 setInterval(function () {
 	var mark=(new Date().getTime()-3000);
+	var ev_mark=(new Date().getTime()-1000);
 	for(key in players) {
 		if(players[key].ping<mark) {
 			playerLeave(key);
+		}
+	}
+	for (var i = 0; i < event_list.length; i++) {
+		var ev = event_list[i];
+		if (ev && ev.timestamp < mark) {
+			console.log('Event '+event_list[i]+' timing out');
+			delete event_list[i];
 		}
 	}
 }, 1000);
@@ -66,9 +77,13 @@ fu.get("/api", function (req, res) {
 			var new_chat=[];
 			var since=getAjaxData(req,'since');
 			var eq_delete=null;
+			var events=[];
+			
+			var now=new Date().getTime();
+			
 			for(key in players) {
 				if (key==id) {
-					players[key].ping=new Date().getTime()
+					players[key].ping=now;
 				}
 				if(key in players) {
 					player_list.push(players[key].nick);
@@ -89,6 +104,8 @@ fu.get("/api", function (req, res) {
 				var p1 = players[player_one].nick;
 				var p2 = players[player_two].nick;
 			}
+			
+			// chat events
 			for (var i = 0; i < chat_box.length; i++) {
 			  var message = chat_box[i];
 			  if (message.timestamp > since) {
@@ -104,11 +121,19 @@ fu.get("/api", function (req, res) {
 			  	new_chat.push('<li class="'+ cls +'"><span>'+message.nick+colon+'</span> <span>'+message.text+'</span></li>');
 			  }
 			}
+			
+			// game events
+			for (var i = 0; i < event_list.length; i++) {
+				var ev = event_list[i];
+				if (ev && ev.timestamp > since) {
+					events.push(ev.data);
+				}
+			}
 
 			data.player_one = p1;
 			data.player_two = p2;
 			data.player_list = player_list;
-			//data.state = waiting_both | waiting_one | waiting_two
+			data.events=events;
 			data.chat=new_chat;
 			
 		break;
@@ -165,32 +190,33 @@ fu.get("/api", function (req, res) {
 			if (!(id in players)) { return; }
 			var text=getAjaxData(req,'text');
 			
+			pushEvent({
+				data: ['foo','bar','baz']
+			});
+			
+			pushEvent({
+				data: ['foo']
+			});
+			
 			if (text.substring(0,1)=='/') {
 				var parse_array=text.split(/\/(.+?)\b/);
 				var op=parse_array[1];
 				var param_str=parse_array[2].trim();
 				var params=param_str.split(' ');
-				
-				console.log(op);
-				console.log(params);
 				switch (op) {
 					case 'me':
-						var message= {
-							nick: '',
+						addMessage({
 							text: players[id].nick+' '+param_str,
-							timestamp: (new Date()).getTime()
-						};
+						});
 					break;
 					case 'fudge':
-						var message= {
+						addMessage({
 							nick: params[0],
 							text: params.slice(1,params.length).join(' '),
-							timestamp: (new Date()).getTime()
-						};
+						});
 					break;
 					case 'rq':
 						addMessage({
-							nick: '',
 							text: players[id].nick+' is so over this stupid game.',
 						});
 					break;
@@ -216,8 +242,18 @@ function addMessage(opts) {
 		nick: '',
 		text: ''
 	};
-	var message = $.extend({}, defaults, opts);
+	var message = extend({}, defaults, opts);
 	chat_box.push(message);
+}
+
+function pushEvent(opts) {
+	var defaults={
+		data: '',
+		timestamp: (new Date()).getTime()
+	};
+	if (opts.category) { opts.category=[opts.category]; }
+	var ev = extend({}, defaults, opts);
+	event_list.push(ev);
 }
 
 function apiError(id,text) {
@@ -297,7 +333,63 @@ function getAjaxData(req,key) {
 	return qs.parse(url.parse(req.url).query)[key];
 }
 
+function extend() { // Thanks jQuery
+	var options, name, src, copy, copyIsArray, clone,
+		target = arguments[0] || {},
+		i = 1,
+		length = arguments.length,
+		deep = false;
 
+	// Handle a deep copy situation
+	if ( typeof target === "boolean" ) {
+		deep = target;
+		target = arguments[1] || {};
+		// skip the boolean and the target
+		i = 2;
+	}
+
+	// Handle case when target is a string or something (possible in deep copy)
+	if ( typeof target !== "object" && !jQuery.isFunction(target) ) {
+		target = {};
+	}
+
+	for ( ; i < length; i++ ) {
+		// Only deal with non-null/undefined values
+		if ( (options = arguments[ i ]) != null ) {
+			// Extend the base object
+			for ( name in options ) {
+				src = target[ name ];
+				copy = options[ name ];
+
+				// Prevent never-ending loop
+				if ( target === copy ) {
+					continue;
+				}
+
+				// Recurse if we're merging plain objects or arrays
+				if ( deep && copy && ( jQuery.isPlainObject(copy) || (copyIsArray = jQuery.isArray(copy)) ) ) {
+					if ( copyIsArray ) {
+						copyIsArray = false;
+						clone = src && jQuery.isArray(src) ? src : [];
+
+					} else {
+						clone = src && jQuery.isPlainObject(src) ? src : {};
+					}
+
+					// Never move original objects, clone them
+					target[ name ] = jQuery.extend( deep, clone, copy );
+
+				// Don't bring in undefined values
+				} else if ( copy !== undefined ) {
+					target[ name ] = copy;
+				}
+			}
+		}
+	}
+
+	// Return the modified object
+	return target;
+};
 
 
 
