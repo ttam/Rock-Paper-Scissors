@@ -35,7 +35,6 @@ var error_queue={};
 
 setInterval(function () {
 	var mark=(new Date().getTime()-3000);
-	var ev_mark=(new Date().getTime()-1000);
 	for(key in players) {
 		if(players[key].ping<mark) {
 			playerLeave(key);
@@ -44,7 +43,6 @@ setInterval(function () {
 	for (var i = 0; i < event_list.length; i++) {
 		var ev = event_list[i];
 		if (ev && ev.timestamp < mark) {
-			console.log('Event '+event_list[i]+' timing out');
 			delete event_list[i];
 		}
 	}
@@ -125,7 +123,11 @@ fu.get("/api", function (req, res) {
 			for (var i = 0; i < event_list.length; i++) {
 				var ev = event_list[i];
 				if (ev && ev.timestamp > since) {
-					events.push(ev.data);
+					if (ev.target=='all') {
+						events.push(ev.data);
+					} else if (ev.target==id) {
+						events.push(ev.data);
+					}
 				}
 			}
 
@@ -165,12 +167,18 @@ fu.get("/api", function (req, res) {
 				if (gidx && !player_one_throw) {
 					player_one_throw=gidx;
 					console.log(players[id].nick+' threw '+move);
+					pushEvent({
+						data: ['throw',1]
+					});
 				}
 			} else if (id==player_two) {
 				var gidx=gestureIndex(move);
 				if (gidx && !player_two_throw) {
 					player_two_throw=gidx;
 					console.log(players[id].nick+' threw '+move);
+					pushEvent({
+						data: ['throw',2]
+					});
 				}
 			}
 
@@ -178,7 +186,11 @@ fu.get("/api", function (req, res) {
 				console.log('resolve '+compareGestures(player_one_throw,player_two_throw));
 				var result=compareGestures(player_one_throw,player_two_throw);
 				if(result==0) {
-
+					pushEvent({
+						data: ['tie']
+					});
+					player_one_throw=null;
+					player_two_throw=null;
 				} else {
 					gameFinish(result);	
 				}
@@ -188,14 +200,6 @@ fu.get("/api", function (req, res) {
 		case 'msg':
 			if (!(id in players)) { return; }
 			var text=getAjaxData(req,'text');
-			
-			pushEvent({
-				data: ['foo','bar','baz']
-			});
-			
-			pushEvent({
-				data: ['foo']
-			});
 			
 			if (text.substring(0,1)=='/') {
 				var parse_array=text.split(/\/(.+?)\b/);
@@ -248,10 +252,12 @@ function addMessage(opts) {
 function pushEvent(opts) {
 	var defaults={
 		data: '',
+		target: 'all',
 		timestamp: (new Date()).getTime()
 	};
 	if (opts.category) { opts.category=[opts.category]; }
 	var ev = extend({}, defaults, opts);
+	console.log('Pushing event with data '+ev.data+ ' to id '+ev.target);
 	event_list.push(ev);
 }
 
@@ -295,7 +301,7 @@ function playerLeave(id) {
 }
 
 function gameFinish(player) {
-	console.log('END');
+	
 	game_active = false;
 	console.log(players[player].nick+' wins');
 	chat_box.push({nick: '', text: players[player].nick+' wins', timestamp: (new Date()).getTime()});
@@ -303,8 +309,14 @@ function gameFinish(player) {
 	player_queue.unshift(player);
 
 	if(player==player_one) {
+		pushEvent({
+			data: ['finish',1,player_one_throw,player_two_throw]
+		});
 		if(player_two in players) player_queue.push(player_two);
 	} else {
+		pushEvent({
+			data: ['finish',2,player_one_throw,player_two_throw]
+		});
 		if(player_one in players) player_queue.push(player_one);
 	}
 
@@ -312,7 +324,7 @@ function gameFinish(player) {
 	player_two = null;
 	player_one_throw=null;
 	player_two_throw=null;
-
+	console.log('END');
 
 	canWeStartTheGame();
 }
@@ -325,6 +337,20 @@ function canWeStartTheGame() {
 		game_active = true;
 		player_one = player_queue.shift();
 		player_two = player_queue.shift();
+		
+		pushEvent({
+			data: ['playing',1],
+			target: player_one
+		});
+		
+		pushEvent({
+			data: ['playing',2],
+			target: player_two
+		});
+		
+		pushEvent({
+			data: ['newgame',players[player_one].nick,players[player_two].nick]
+		});
 	}
 }
 
