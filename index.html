@@ -41,7 +41,7 @@
 
 <script src="jquery-1.8.1.min.js"></script>
 <script>
-var API_URL = 'http://192.168.10.146:645/api';
+var API_URL = 'http://127.0.0.1:645/api';
 var MY_ID = 0;
 var MY_NAME = '';
 
@@ -56,6 +56,9 @@ function getGameState() {
 		$('#players').html('<ul>'+list_output+'</ul>');
 		$('#chat-box ul').append(data.chat.join("\n"));
 		last_update=(new Date()).getTime();
+		
+		if (data.errortext) { alert(data.errortext); }
+		
 	});
 
 	if(MY_ID==0) {

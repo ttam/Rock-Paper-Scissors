@@ -1,4 +1,5 @@
-HOST = '192.168.10.146'; // localhost
+//HOST = '192.168.10.146'; // localhost
+HOST=null;
 PORT = 645;
 
 // when the daemon started
@@ -27,19 +28,25 @@ var player_one_throw = null;
 var player_two_throw = null;
 var game_active = false;
 
-
+var error_queue=[];
 
 //player_list[100]=['foo',new Date().getTime()];
 //player_list[101]=['bar',new Date().getTime()];
 
-
+setInterval(function () {
+	var mark=(new Date().getTime()-3000);
+	for(key in players) {
+		if(players[key].ping<mark) {
+			playerLeave(key);
+		}
+	}
+}, 1000);
 
 fu.listen(Number(process.env.PORT || PORT), HOST);
 
 fu.get("/", fu.staticHandler("index.html"));
 fu.get("/styles.css", fu.staticHandler("styles.css"));
 fu.get("/jquery-1.8.1.min.js", fu.staticHandler("jquery-1.8.1.min.js"));
-
 
 fu.get("/api", function (req, res) {
 	var action = getAjaxData(req,'action');
@@ -56,10 +63,6 @@ fu.get("/api", function (req, res) {
 			for(key in players) {
 				if (key==id) {
 					players[key].ping=new Date().getTime()
-				} else {
-					if(players[key].ping<(new Date().getTime()-3000)) {
-						playerLeave(key);
-					}
 				}
 				if(key in players) {
 					player_list.push(players[key].nick);
@@ -91,6 +94,7 @@ fu.get("/api", function (req, res) {
 			data.player_one = p1;
 			data.player_two = p2;
 			data.player_list = player_list;
+			data.errortext='';
 			//data.state = waiting_both | waiting_one | waiting_two
 			data.chat=new_chat;
 			
@@ -146,9 +150,15 @@ fu.get("/api", function (req, res) {
 		
 		case 'msg':
 			if (!(id in players)) { return; }
+			var text=getAjaxData(req,'text');
+			
+			if (text.substring(0,1)=='/') {
+				error_queue.push({id:id,text:'foo'});
+			}
+			
 			var message= {
 				nick: players[id].nick,
-				text: getAjaxData(req,'text'),
+				text: text,
 				timestamp: (new Date()).getTime()
 			};
 
@@ -156,91 +166,74 @@ fu.get("/api", function (req, res) {
 			
 		break;
 	}
-
-	var message = 'Called action '+action;
-  res.simpleJSON(200, data);
-
-
-/*
-  var nicks = [];
-  for (var id in sessions) {
-    if (!sessions.hasOwnProperty(id)) continue;
-    var session = sessions[id];
-    nicks.push(session.nick);
-  }
-  res.simpleJSON(200, { nicks: nicks
-                      , rss: mem.rss
-                      });
-*/
-	function compareGestures(g1,g2){
-		if (g1==g2) { return 0; }
-		if (g1==1) {
-			return (g2==2) ? player_one : player_two;
-		} else if (g1==2) {
-			return (g2==3) ? player_one : player_two;
-		} else if (g1==3) {
-			return (g2==1) ? player_one : player_two;
-		}
-	}
-
-	function gestureIndex(gesture) {
-		switch(gesture) {
-			case 'rock': return 1;
-			case 'scissors': return 2;
-			case 'paper': return 3;
-		}
-		return false;
-	}
-
-	function playerLeave(id) {
-		var idx = player_queue.indexOf(id); // Find the index
-		if(idx!=-1) player_queue.splice(idx, 1); // Remove it if really found!
-
-		delete players[id];
-
-		if(id==player_one || id==player_two) {
-			gameFinish((id==player_one) ? player_two : player_one);
-		}
-	}
-
-	function gameFinish(player) {
-		console.log('END');
-		game_active = false;
-		console.log(players[player].nick+' wins');
-		chat_box.push({nick: '', text: players[player].nick+' wins', timestamp: (new Date()).getTime()});
-
-		player_queue.unshift(player);
-
-		if(player==player_one) {
-			if(player_two in players) player_queue.push(player_two);
-		} else {
-			if(player_one in players) player_queue.push(player_one);
-		}
-
-		player_one = null;
-		player_two = null;
-		player_one_throw=null;
-		player_two_throw=null;
-
-
-		canWeStartTheGame();
-	}
-
-	function canWeStartTheGame() {
-		if(game_active) return;
-		console.log(player_queue);
-		if(player_queue.length>1) {
-			console.log('START');
-			game_active = true;
-			player_one = player_queue.shift();
-			player_two = player_queue.shift();
-		}
-	}
-
+	res.simpleJSON(200, data);
 });
 
 
+function compareGestures(g1,g2){
+	if (g1==g2) { return 0; }
+	if (g1==1) {
+		return (g2==2) ? player_one : player_two;
+	} else if (g1==2) {
+		return (g2==3) ? player_one : player_two;
+	} else if (g1==3) {
+		return (g2==1) ? player_one : player_two;
+	}
+}
 
+function gestureIndex(gesture) {
+	switch(gesture) {
+		case 'rock': return 1;
+		case 'scissors': return 2;
+		case 'paper': return 3;
+	}
+	return false;
+}
+
+function playerLeave(id) {
+	var idx = player_queue.indexOf(id); // Find the index
+	if(idx!=-1) player_queue.splice(idx, 1); // Remove it if really found!
+
+	delete players[id];
+
+	if(id==player_one || id==player_two) {
+		gameFinish((id==player_one) ? player_two : player_one);
+	}
+}
+
+function gameFinish(player) {
+	console.log('END');
+	game_active = false;
+	console.log(players[player].nick+' wins');
+	chat_box.push({nick: '', text: players[player].nick+' wins', timestamp: (new Date()).getTime()});
+
+	player_queue.unshift(player);
+
+	if(player==player_one) {
+		if(player_two in players) player_queue.push(player_two);
+	} else {
+		if(player_one in players) player_queue.push(player_one);
+	}
+
+	player_one = null;
+	player_two = null;
+	player_one_throw=null;
+	player_two_throw=null;
+
+
+	canWeStartTheGame();
+}
+
+function canWeStartTheGame() {
+	if(game_active) return;
+	console.log(player_queue);
+	if(player_queue.length>1) {
+		console.log('START');
+		game_active = true;
+		player_one = player_queue.shift();
+		player_two = player_queue.shift();
+	}
+}
 
 function getAjaxData(req,key) {
 	return qs.parse(url.parse(req.url).query)[key];
