@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="ot-joined">
+<body class="not-joined">
 	<div id="everything"> 
 		<div id="contentwrap"><div id="content"> 
 			<div id="game">
@@ -55,7 +55,7 @@ var player_two_status = 0;
 
 var last_update=0;
 
-var $chatBox, $chatBoxUl, $playerOne, $playerTwo, $handOne, $handTwo, $players;
+var $chatBox, $chatBoxUl, $playerOne, $playerTwo, $handOne, $handTwo, $buttons, $players;
 
 function init() {
 	$chatBox = $('#chat-box');
@@ -64,6 +64,7 @@ function init() {
 	$playerTwo = $('#playertwo');
 	$handOne = $('#hand-one');
 	$handTwo = $('#hand-two');
+	$buttons = $('#buttons');
 	$players = $('#players');
 
 	$handOne.removeClass('hand-chosen hand-rock hand-paper hand-scissors');
@@ -71,8 +72,12 @@ function init() {
 }
 
 function playerThrow(player, item) {
+	if(player==1) { $div = $handOne; }
+	else if(player==2) { $div = $handTwo; }
+	else { return; }
+
 	$div = (player==1) ? $handOne : $handTwo;
-	$div.removeClass();
+	$div.removeClass().addClass('hand');
 	switch(item) {
 		case 1:
 			$div.addClass('hand-chosen');
@@ -96,22 +101,36 @@ function getGameState() {
 	makeRequest('getstate',{since:last_update},function(data) {
 		var list_output = data.player_list.join('</li><li>');
 
-		$playerOne.html(data.player_one);
-		$playerTwo.html(data.player_two);
 		$players.html('<ul><li>'+list_output+'</li></ul>');
 		$chatBoxUl.append(data.chat.join("\n"))
 		$chatBox.animate({ scrollTop: $chatBox.prop('scrollHeight') - $chatBox.height() }, 300);
 		last_update=(new Date()).getTime();
 		
-		if("errortext" in data) {
+		if("errortext" in data && data.errortext!='') {
 			alert(data.errortext);
 		}
 
 		if("events" in data) {
 			var e = data.events;
 			switch(e[0]) {
-				case 'player_throw':
-					playerThrow(e[1], e[2]);
+				case 'playing':
+					$buttons.removeClass('side1 side2').addClass('side'+e[1]);
+				break;
+
+				case 'throw':
+					playerThrow(e[0], 1);
+				break;
+
+				case 'finish':
+					playerThrow(1, e[1]+1);
+					playerThrow(2, e[2]+1);
+					endGame(e[0]);
+				break;
+
+				case 'newgame':
+					$playerOne.html(e[0]);
+					$playerTwo.html(e[1]);
+					startGame();
 				break;
 			}
 		}
@@ -130,6 +149,10 @@ getGameStateInterval = window.setInterval(getGameState, 800);
 function startGame() {
 	$('body').removeClass('player-one player-two');
 	$('#hand-one, #hand-two').removeClass('hand-chosen hand-rock hand-scissors hand-paper');
+}
+
+function endGame(winner) {
+	alert('Player '+ winner +' won!');
 }
 
 function makeRequest(action,data,callback) {

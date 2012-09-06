@@ -139,6 +139,9 @@ html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
 	position: absolute;
 }
 
+#buttons.side1 { left: 0; }
+#buttons.side2 { left: 50%; }
+
 .player-one #buttons {
 	left: 0;
 }
