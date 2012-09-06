@@ -9,52 +9,34 @@
 </head>
 <body>
 	<div id="everything"> 
+		<div id="contentwrap"><div id="content"> 
+			<div id="game">
+				<input type="text" id="my_name" />
+				<button id="joinbutton" data-action="join">JOIN</button>
+				<button id="leavebutton" data-action="leave">LEAVE</button>
 
-					<div id="contentwrap"><div id="content"> 
+				<button id="rock">Rock</button>
+				<button id="paper">Paper</button>
+				<button id="scissors">Scissors</button>
+			</div>
+			<div id="chat">
+				<div id="chat-box"><ul></ul></div>
+				<div id="chat-control">
+					<button id="chat-send">Send</button>
+					<input type="text" id="chat-message" />
+				</div>
+			</div>
 
+		</div></div>
 
-
-<div id="game">
-
-			<input type="text" id="my_name" />
-			<button id="joinbutton" data-action="join">JOIN</button>
-			<button id="leavebutton" data-action="leave">LEAVE</button>
-
-			<button id="rock">Rock</button>
-			<button id="paper">Paper</button>
-			<button id="scissors">Scissors</button>
-
-		</div>
-		<div id="chat">
-
-			<div id="chat-box"><ul></ul></div>
-
-			<button id="chat-send">Send</button>
-			<input type="text" id="chat-message" />
-			
-
-		</div>
-
-
-
-
-
-
-
-
-					</div></div>
-
-					<div id="sidebar">
-						<div id="vs">
-							<p id="playerone">Player 1</p>
-							<span>vs</span>
-							<p id="playertwo">Player 2</p>
-						</div>
-						<div id="players"></div>
-					</div> 
-
-
-
+		<div id="sidebar">
+			<div id="vs">
+				<p id="playerone">Player 1</p>
+				<span>vs</span>
+				<p id="playertwo">Player 2</p>
+			</div>
+			<div id="players"></div>
+		</div> 
 	</div>
 
 <script src="jquery-1.8.1.min.js"></script>
