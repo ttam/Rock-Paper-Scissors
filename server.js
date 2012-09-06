@@ -64,9 +64,8 @@ fu.get("/api", function (req, res) {
 				if (key==id) {
 					players[key].ping=new Date().getTime()
 				}
-				if(key in players) {
-					player_list.push(players[key].nick);
-				}
+
+				if(key in players) player_list.push(players[key].nick);
 			}
 
 			var p1=p2 = 'Empty Spot';

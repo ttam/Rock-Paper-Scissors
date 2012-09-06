@@ -11,16 +11,24 @@
 	<div id="everything"> 
 		<div id="contentwrap"><div id="content"> 
 			<div id="game">
-				<input type="text" id="my_name" />
+				<input type="text" placeholder="Choose a name" id="my_name">
 				<button id="joinbutton" data-action="join">JOIN</button>
-				<button id="leavebutton" data-action="leave">LEAVE</button>
+				<button id="leavebutton" data-action="leave">LEAVE GAME</button>
 
-				<button id="rock">Rock</button>
-				<button id="paper">Paper</button>
-				<button id="scissors">Scissors</button>
+				<div class="hand" id="hand-one"></div>
+				<div class="hand" id="hand-two"></div>
+				<div id="buttons">
+					<button id="rock">Rock</button>
+					<button id="paper">Paper</button>
+					<button id="scissors">Scissors</button>
+				</div>
 			</div>
 			<div id="chat">
-				<div id="chat-box"><ul></ul></div>
+				<div id="chat-box"><ul>
+					<li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li>
+					<li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li>
+					<li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li><li><span>blah:</span><span>blahhh</span></li>
+				</ul></div>
 				<div id="chat-control">
 					<button id="chat-send">Send</button>
 					<input type="text" id="chat-message" />
@@ -44,6 +52,7 @@
 var API_URL = 'http://127.0.0.1:645/api';
 var MY_ID = 0;
 var MY_NAME = '';
+var player_status = 0;
 
 var last_update=0;
 
@@ -62,19 +71,22 @@ function getGameState() {
 	});
 
 	if(MY_ID==0) {
+		$('body').removeClass().addClass('joined');
 		$('#chat-message, #chat-send').prop('disabled', 'disabled');
 	} else {
 		$('#chat-message, #chat-send').prop('disabled', '');
 	}
 }
+
+getGameState();
 getGameStateInterval = window.setInterval(getGameState, 800);
 
 function makeRequest(action,data,callback) {
 	var ajax_data = {};
 	ajax_data = $.extend({action:action, id: MY_ID},data);
-	console.log(ajax_data);
 	$.get(API_URL, ajax_data, callback);
 }
+
 $(function(){
 	$('#joinbutton').click(function() {
 		MY_NAME=$('#my_name').val();

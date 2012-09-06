@@ -29,13 +29,92 @@ html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
 #content {
 	height: 100%;
 	margin-right: 235px;
+	position: relative;
 }
 
 #game {
 	background: grey;
 	float: left;
 	height: 65%;
+	position: relative;
 	width: 100%;
+}
+
+/** Buttons **/
+.not-joined #leavebutton, .not-joined #rock, .not-joined #paper, .not-joined #scissors { display: none; }
+.not-joined #game { background: #ffffff; }
+.not-joined #my_name, .not-joined #joinbutton {
+  left: 40px;
+  padding: 6px;
+	position:absolute;
+  text-align: center;
+  margin-left: 25%;
+  top: 50%;
+  width: 50%;
+}
+
+.not-joined #my_name {
+	height: 100px;
+	font-size: 100px;
+	margin-top: -200px;
+}
+
+.not-joined #joinbutton {
+	cursor: pointer;
+	height: 100px;
+	font-size: 100px;
+	line-height: 100px;
+}
+
+.joined #my_name, .joined #joinbutton { display: none; }
+.joined #leavebutton {
+	background: #bc0000;
+	border: 0;
+	color: #ffffff;
+	cursor: hand;
+	font-size: 20px;
+	height: 35px;
+	padding: 4px;
+	width: 100%;
+}
+
+.joined #leavebutton:hover {
+	background: #f00;
+}
+
+.joined .hand, .joined #buttons {
+	height: calc(100% - 35px);
+	height: -webkit-calc(100% - 35px);
+	float: left;
+	width: 50%;
+}
+
+.hand {
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.hand-rock { background-image: url(img/rock.png); }
+.hand-paper { background-image: url(img/paper.png); }
+.hand-scissors { background-image: url(img/scissors.png); }
+
+#hand-one {
+	background: red;
+}
+
+#hand-two {
+	background: yellow;
+}
+
+.joined #buttons {
+	background: green;
+	bottom: 0;
+	left: -50%;
+	position: absolute;
+}
+
+.player-one #buttons {
+	left: 0;
 }
 
 #chat {
@@ -47,12 +126,12 @@ html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
 
 #chat-box {
 	background: #00ff00;
-	float: left;
-	height: auto;
-	margin-bottom: -30px;
-	min-width: 500px;
-	overflow: scroll;
-	width: 100%;
+	height: -moz-calc(100% - 50px);
+	height: -webkit-calc(100% - 50px);
+	height: calc(100% - 50px);
+	padding: 10px;
+	overflow-x: hidden;
+	overflow-y: scroll;
 }
 
 #chat-control {
@@ -65,6 +144,7 @@ html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
 li span:first-child {
 	color: blue;
 	font-weight: bold;
+	padding-right: 0.3em;
 }
 
 li.msg {
