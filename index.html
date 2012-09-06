@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <title>Rock Paper Scissors</title>
+  <meta name="description" content="Rock Paper Scissors">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+	<div id="everything"> 
+
+					<div id="contentwrap"><div id="content"> 
+
+
+
+<div id="game">
+
+			<input type="text" id="my_name" />
+			<button id="joinbutton" data-action="join">JOIN</button>
+			<button id="leavebutton" data-action="leave">LEAVE</button>
+
+			<button id="rock">Rock</button>
+			<button id="paper">Paper</button>
+			<button id="scissors">Scissors</button>
+
+		</div>
+		<div id="chat">
+
+			<div id="chat-box"><ul></ul></div>
+
+			<button id="chat-send">Send</button>
+			<input type="text" id="chat-message" />
+			
+
+		</div>
+
+
+
+
+
+
+
+
+					</div></div>
+
+					<div id="sidebar">
+						<div id="vs">
+							<p id="playerone">Player 1</p>
+							<span>vs</span>
+							<p id="playertwo">Player 2</p>
+						</div>
+						<div id="players"></div>
+					</div> 
+
+
+
+	</div>
+
+<script src="jquery-1.8.1.min.js"></script>
+<script>
+var API_URL = 'http://192.168.10.146:645/api';
+var MY_ID = 0;
+var MY_NAME = '';
+
+var last_update=0;
+
+function getGameState() {
+	makeRequest('getstate',{since:last_update},function(data) {
+		var list_output = data.player_list.join(', ');
+
+		$('#playerone').html(data.player_one);
+		$('#playertwo').html(data.player_two);
+		$('#players').html('<ul>'+list_output+'</ul>');
+		$('#chat-box ul').append(data.chat.join("\n"));
+		last_update=(new Date()).getTime();
+	});
+
+	if(MY_ID==0) {
+		$('#chat-message, #chat-send').prop('disabled', 'disabled');
+	} else {
+		$('#chat-message, #chat-send').prop('disabled', '');
+	}
+}
+getGameStateInterval = window.setInterval(getGameState, 800);
+
+function makeRequest(action,data,callback) {
+	var ajax_data = {};
+	ajax_data = $.extend({action:action, id: MY_ID},data);
+	console.log(ajax_data);
+	$.get(API_URL, ajax_data, callback);
+}
+$(function(){
+	$('#joinbutton').click(function() {
+		MY_NAME=$('#my_name').val();
+		makeRequest('join',{name:MY_NAME}, function(data) {
+			MY_ID=data.id;
+		});
+	});
+
+	$('#leavebutton').click(function() {
+		if (MY_ID==0) { alert('join before leaving'); return;}
+		makeRequest('leave',{}, function(data) {
+			MY_ID=0;
+			MY_NAME='';
+		});
+	});
+
+	$('#rock').click(function() {
+		makeRequest('throw', {gesture:'rock'}, function(data) {
+			
+		});
+	});
+
+	$('#paper').click(function() {
+		makeRequest('throw', {gesture:'paper'}, function(data) {
+			
+		});
+	});
+
+	$('#scissors').click(function() {
+		makeRequest('throw', {gesture:'scissors'}, function(data) {
+			
+		});
+	});
+
+	function sendMessage() {
+		var $msg = $('#chat-message');
+		makeRequest('msg',{text: $msg.val()});
+		$msg.val('');
+	}
+
+	$('#chat-send').click(sendMessage);
+	$('#chat-message').live('keypress', function(e){
+		if(e.which==13) {
+			sendMessage();
+		}
+	});
+});
+</script>
+
+</body>
+</html>
